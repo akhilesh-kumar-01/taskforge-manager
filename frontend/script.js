@@ -69,6 +69,12 @@ if (loginForm) {
 
 // Dashboard Stats
 const loadDashboard = async () => {
+    const user = getUser();
+    if (user) {
+        document.getElementById('userName').innerText = user.name;
+        document.getElementById('userRole').innerText = user.role || 'Admin';
+    }
+
     const res = await fetch(`${API_URL}/tasks/dashboard`, {
         headers: { 'Authorization': `Bearer ${getToken()}` }
     });
