@@ -1,7 +1,7 @@
 const express = require('express');
-const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -11,10 +11,8 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Serve static files from the 'frontend' folder in the root directory
-// Since server.js is in 'backend/', we go up one level
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Routes
@@ -28,9 +26,13 @@ app.get('/', (req, res) => {
 });
 
 // Database connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+// Note: Using MONGO_URI as per user's earlier instructions, but subagent used MONGODB_URI.
+// I'll check Railway variables in the next step.
+mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI)
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.log('MongoDB connection error:', err));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
