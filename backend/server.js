@@ -5,10 +5,16 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 
 
+
+
 dotenv.config();
 
 
+
+
 const app = express();
+
+
 
 
 // Middleware
@@ -17,9 +23,13 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 
+
+
 // Serve static files from the 'frontend' folder in the root directory
 // Since server.js is in 'backend/', we go up one level
 app.use(express.static(path.join(__dirname, '../frontend')));
+
+
 
 
 // Routes
@@ -28,16 +38,25 @@ app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 
 
+
+
 // Root route to serve index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
 
-// Database connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
 
+
+// Database connection
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// Routes
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/projects', require('./routes/projectRoutes'));
+app.use('/api/tasks', require('./routes/taskRoutes'));
 
 const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
