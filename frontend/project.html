@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Details - Team Task Manager</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav>
+        <span>Team Task Manager</span>
+        <div>
+            <a href="dashboard.html">Dashboard</a>
+            <button id="logoutBtn">Logout</button>
+        </div>
+    </nav>
+    <div class="container">
+        <h2 id="projectTitle">Project Name</h2>
+        
+        <div id="adminPanel" style="display: none;">
+            <h3>Add Member</h3>
+            <form id="addMemberForm">
+                <div class="form-group">
+                    <input type="email" id="memberEmail" placeholder="Member Email" required>
+                </div>
+                <button type="submit">Add Member</button>
+            </form>
+            <hr>
+        </div>
+
+        <h3>Tasks</h3>
+        <div id="taskList">
+            <!-- Tasks will be listed here -->
+        </div>
+
+        <hr>
+
+        <h3>Create New Task</h3>
+        <form id="createTaskForm">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="taskTitle" required>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="taskDescription"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Assign To (User ID or Email - keeping it simple with email check in backend later maybe, or just id for now)</label>
+                <input type="text" id="assignedTo" placeholder="User ID">
+            </div>
+            <div class="form-group">
+                <label>Due Date</label>
+                <input type="date" id="dueDate">
+            </div>
+            <button type="submit">Create Task</button>
+        </form>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
