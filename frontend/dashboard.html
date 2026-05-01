@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Team Task Manager</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav>
+        <span>Team Task Manager</span>
+        <div>
+            <a href="dashboard.html">Dashboard</a>
+            <button id="logoutBtn">Logout</button>
+        </div>
+    </nav>
+    <div class="container">
+        <h2>Dashboard</h2>
+        <div class="card-container">
+            <div class="card">
+                <h3>Total Tasks</h3>
+                <p id="totalTasks">0</p>
+            </div>
+            <div class="card">
+                <h3>Completed</h3>
+                <p id="completedTasks">0</p>
+            </div>
+            <div class="card">
+                <h3>Pending</h3>
+                <p id="pendingTasks">0</p>
+            </div>
+            <div class="card">
+                <h3>Overdue</h3>
+                <p id="overdueTasks">0</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <h3>Create New Project</h3>
+        <form id="createProjectForm">
+            <div class="form-group">
+                <input type="text" id="projectName" placeholder="Project Name" required>
+            </div>
+            <button type="submit">Create Project</button>
+        </form>
+
+        <hr>
+
+        <h3>My Projects</h3>
+        <div id="projectList">
+            <!-- Projects will be listed here -->
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
