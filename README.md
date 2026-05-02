@@ -39,7 +39,7 @@ Check out the live version of the project here:
 https://taskforge-final-app.up.railway.app/login.html
 
 ## How to Contribute
-Since this is a college assignment, I'm mostly working on it myself. But if you find any bugs or want to add a cool feature, feel free to help out!
+Since this is a EtharaAI assignment, I'm mostly working on it myself because i want to improve it more so please ignore some small small bugs. But if you find any bugs or want to add a cool feature, feel free to help out!
 1. Fork the project.
 2. Create a new branch for your feature.
 3. Make your changes and commit them.
