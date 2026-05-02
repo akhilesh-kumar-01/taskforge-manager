@@ -5,7 +5,7 @@ const getToken = () => localStorage.getItem('token');
 const getUser = () => JSON.parse(localStorage.getItem('user'));
 
 // Check if logged in
-if (!getToken() && !window.location.pathname.includes('login.html') && !window.location.pathname.includes('signup.html')) {
+if (!getToken() && !window.location.pathname.includes('login.html') && !window.location.pathname.includes('signup.html') && window.location.pathname !== '/') {
     window.location.href = 'login.html';
 }
 
@@ -26,11 +26,12 @@ if (signupForm) {
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        const role = document.getElementById('role').value;
 
         const res = await fetch(`${API_URL}/auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password })
+            body: JSON.stringify({ name, email, password, role })
         });
         const data = await res.json();
         if (data.token) {
@@ -72,17 +73,17 @@ const loadDashboard = async () => {
     const user = getUser();
     if (user) {
         document.getElementById('userName').innerText = user.name;
-        document.getElementById('userRole').innerText = user.role || 'Admin';
+        document.getElementById('userRole').innerText = user.role;
     }
 
     const res = await fetch(`${API_URL}/tasks/dashboard`, {
         headers: { 'Authorization': `Bearer ${getToken()}` }
     });
     const data = await res.json();
-    document.getElementById('totalTasks').innerText = data.total || 0;
-    document.getElementById('completedTasks').innerText = data.completed || 0;
-    document.getElementById('pendingTasks').innerText = data.pending || 0;
-    document.getElementById('overdueTasks').innerText = data.overdue || 0;
+    document.getElementById('totalTasks').innerHTML = `<span class="value">${data.total || 0}</span>`;
+    document.getElementById('completedTasks').innerHTML = `<span class="value">${data.completed || 0}</span>`;
+    document.getElementById('pendingTasks').innerHTML = `<span class="value">${data.pending || 0}</span>`;
+    document.getElementById('overdueTasks').innerHTML = `<span class="value">${data.overdue || 0}</span>`;
 
     loadProjects();
 };
@@ -99,8 +100,11 @@ const loadProjects = async () => {
         const div = document.createElement('div');
         div.className = 'project-item';
         div.innerHTML = `
-            <span>${p.name} (Admin: ${p.adminId.name})</span>
-            <a href="project.html?id=${p._id}">View Tasks</a>
+            <div>
+                <strong>${p.name}</strong><br>
+                <small style="color: var(--text-muted)">Admin: ${p.adminId.name}</small>
+            </div>
+            <a href="project.html?id=${p._id}" style="color: var(--primary); font-weight: 600;">View Tasks</a>
         `;
         list.appendChild(div);
     });
@@ -132,50 +136,76 @@ const loadProjectDetails = async () => {
     const projectId = urlParams.get('id');
     if (!projectId) return;
 
-    // Get project info (could add a route for this, but let's reuse projects list for simplicity or just fetch tasks)
+    // Get tasks
     const resTasks = await fetch(`${API_URL}/tasks/project/${projectId}`, {
         headers: { 'Authorization': `Bearer ${getToken()}` }
     });
     const tasks = await resTasks.json();
     
-    const taskList = document.getElementById('taskList');
-    taskList.innerHTML = '';
-    tasks.forEach(t => {
-        const div = document.createElement('div');
-        div.className = 'task-item';
-        div.innerHTML = `
-            <div>
-                <strong>${t.title}</strong> - <span class="status-${t.status.replace(' ', '').toLowerCase()}">${t.status}</span><br>
-                <small>Assigned to: ${t.assignedTo ? t.assignedTo.name : 'Unassigned'}</small>
-            </div>
-            <div>
-                <select onchange="updateTaskStatus('${t._id}', this.value)">
-                    <option value="To Do" ${t.status === 'To Do' ? 'selected' : ''}>To Do</option>
-                    <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                    <option value="Done" ${t.status === 'Done' ? 'selected' : ''}>Done</option>
-                </select>
-                <button onclick="deleteTask('${t._id}')">Delete</button>
-            </div>
-        `;
-        taskList.appendChild(div);
-    });
-
-    // Check if user is admin of this project (simple approach: fetch projects and find this one)
+    // Get project members and info
     const resProjects = await fetch(`${API_URL}/projects`, {
         headers: { 'Authorization': `Bearer ${getToken()}` }
     });
     const projects = await resProjects.json();
     const project = projects.find(p => p._id === projectId);
-    if (project) {
-        document.getElementById('projectTitle').innerText = project.name;
-        if (project.adminId._id === getUser().id) {
-            document.getElementById('adminPanel').style.display = 'block';
+    
+    if (!project) return;
+    document.getElementById('projectTitle').innerText = project.name;
+
+    const currentUserId = getUser().id;
+    const isProjectAdmin = project.adminId._id === currentUserId;
+
+    // Show admin panel if admin
+    if (isProjectAdmin) {
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('createTaskForm').style.display = 'block';
+    } else {
+        document.getElementById('createTaskForm').style.display = 'none';
+        document.getElementById('createTaskHeader').style.display = 'none';
+    }
+
+    // Populate assignedTo dropdown
+    const assignedToSelect = document.getElementById('assignedTo');
+    if (assignedToSelect) {
+        assignedToSelect.innerHTML = '<option value="">Select Member</option>';
+        if (project.members) {
+            project.members.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m._id;
+                opt.innerText = `${m.name} (${m.email})`;
+                assignedToSelect.appendChild(opt);
+            });
         }
     }
+
+    const taskList = document.getElementById('taskList');
+    taskList.innerHTML = '';
+    tasks.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'task-item';
+        const isAssigned = t.assignedTo && t.assignedTo._id === currentUserId;
+        const canUpdate = isProjectAdmin || isAssigned;
+
+        div.innerHTML = `
+            <div>
+                <strong>${t.title}</strong><br>
+                <small style="color: var(--text-muted)">Assigned to: ${t.assignedTo ? t.assignedTo.name : 'Unassigned'}</small>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <select ${!canUpdate ? 'disabled' : ''} onchange="updateTaskStatus('${t._id}', this.value)" style="width: auto;">
+                    <option value="To Do" ${t.status === 'To Do' ? 'selected' : ''}>To Do</option>
+                    <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                    <option value="Done" ${t.status === 'Done' ? 'selected' : ''}>Done</option>
+                </select>
+                ${isProjectAdmin ? `<button onclick="deleteTask('${t._id}')" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 5px 10px;">Delete</button>` : ''}
+            </div>
+        `;
+        taskList.appendChild(div);
+    });
 };
 
 window.updateTaskStatus = async (taskId, status) => {
-    await fetch(`${API_URL}/tasks/status`, {
+    const res = await fetch(`${API_URL}/tasks/status`, {
         method: 'PUT',
         headers: { 
             'Content-Type': 'application/json',
@@ -183,16 +213,23 @@ window.updateTaskStatus = async (taskId, status) => {
         },
         body: JSON.stringify({ taskId, status })
     });
+    if (!res.ok) {
+        const data = await res.json();
+        alert(data.message);
+    }
     loadProjectDetails();
 };
 
 window.deleteTask = async (taskId) => {
+    if (!confirm('Are you sure?')) return;
     const res = await fetch(`${API_URL}/tasks/${taskId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${getToken()}` }
     });
-    const data = await res.json();
-    if (!res.ok) alert(data.message);
+    if (!res.ok) {
+        const data = await res.json();
+        alert(data.message);
+    }
     loadProjectDetails();
 };
 
@@ -216,6 +253,7 @@ if (addMemberForm) {
         if (res.ok) {
             alert('Member added');
             document.getElementById('memberEmail').value = '';
+            loadProjectDetails();
         } else {
             alert(data.message);
         }
@@ -244,6 +282,9 @@ if (createTaskForm) {
         if (res.ok) {
             loadProjectDetails();
             createTaskForm.reset();
+        } else {
+            const data = await res.json();
+            alert(data.message);
         }
     };
 }
@@ -251,3 +292,4 @@ if (createTaskForm) {
 // Initial Loads
 if (window.location.pathname.includes('dashboard.html')) loadDashboard();
 if (window.location.pathname.includes('project.html')) loadProjectDetails();
+

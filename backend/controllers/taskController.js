@@ -7,6 +7,11 @@ exports.createTask = async (req, res) => {
         const project = await Project.findById(projectId);
         if (!project) return res.status(404).json({ message: 'Project not found' });
 
+        // Check if user is admin of the project
+        if (project.adminId.toString() !== req.user.id && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Only project admin can create tasks' });
+        }
+
         const task = new Task({
             title,
             description,
@@ -34,8 +39,17 @@ exports.getTasks = async (req, res) => {
 exports.updateStatus = async (req, res) => {
     const { taskId, status } = req.body;
     try {
-        const task = await Task.findById(taskId);
+        const task = await Task.findById(taskId).populate('projectId');
         if (!task) return res.status(404).json({ message: 'Task not found' });
+
+        const project = task.projectId;
+        // Check if user is admin or assigned member
+        const isProjectAdmin = project.adminId.toString() === req.user.id;
+        const isAssignedMember = task.assignedTo && task.assignedTo.toString() === req.user.id;
+
+        if (!isProjectAdmin && !isAssignedMember) {
+            return res.status(403).json({ message: 'Permission denied' });
+        }
 
         task.status = status;
         await task.save();

@@ -18,7 +18,9 @@ exports.createProject = async (req, res) => {
 
 exports.getProjects = async (req, res) => {
     try {
-        const projects = await Project.find({ members: req.user.id }).populate('adminId', 'name');
+        const projects = await Project.find({ members: req.user.id })
+            .populate('adminId', 'name')
+            .populate('members', 'name email');
         res.json(projects);
     } catch (err) {
         res.status(500).json({ message: 'Server error' });
