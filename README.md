@@ -36,7 +36,7 @@ Follow these steps to run the project on your own computer:
 
 ## Live Demo
 Check out the live version of the project here:
-[[https://taskforge-final-app.railway.app/](https://taskforge-final-app.railway.app/](https://taskforge-final-app.up.railway.app/login.html))
+https://taskforge-final-app.up.railway.app/login.html
 
 ## How to Contribute
 Since this is a college assignment, I'm mostly working on it myself. But if you find any bugs or want to add a cool feature, feel free to help out!
