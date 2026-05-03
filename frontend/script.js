@@ -74,6 +74,13 @@ const loadDashboard = async () => {
     if (user) {
         document.getElementById('userName').innerText = user.name;
         document.getElementById('userRole').innerText = user.role;
+        
+        // Hide create project functionality for members
+        if (user.role === 'Member') {
+            if (document.getElementById('createProjectForm')) document.getElementById('createProjectForm').style.display = 'none';
+            if (document.getElementById('createProjectHeader')) document.getElementById('createProjectHeader').style.display = 'none';
+            if (document.getElementById('createProjectHr')) document.getElementById('createProjectHr').style.display = 'none';
+        }
     }
 
     const res = await fetch(`${API_URL}/tasks/dashboard`, {
