@@ -43,15 +43,36 @@ exports.updateStatus = async (req, res) => {
         if (!task) return res.status(404).json({ message: 'Task not found' });
 
         const project = task.projectId;
-        // Check if user is admin or assigned member
+        
+        // Check if user is admin
         const isProjectAdmin = project.adminId.toString() === req.user.id;
-        const isAssignedMember = task.assignedTo && task.assignedTo.toString() === req.user.id;
 
-        if (!isProjectAdmin && !isAssignedMember) {
-            return res.status(403).json({ message: 'Permission denied' });
+        if (!isProjectAdmin) {
+            return res.status(403).json({ message: 'Only admin can change task status' });
         }
 
         task.status = status;
+        await task.save();
+        res.json(task);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.updateProgress = async (req, res) => {
+    const { taskId, memberProgress } = req.body;
+    try {
+        const task = await Task.findById(taskId);
+        if (!task) return res.status(404).json({ message: 'Task not found' });
+
+        // Check if user is assigned member
+        const isAssignedMember = task.assignedTo && task.assignedTo.toString() === req.user.id;
+
+        if (!isAssignedMember) {
+            return res.status(403).json({ message: 'Only the assigned member can update progress' });
+        }
+
+        task.memberProgress = memberProgress;
         await task.save();
         res.json(task);
     } catch (err) {

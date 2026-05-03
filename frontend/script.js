@@ -203,7 +203,7 @@ const loadProjectDetails = async () => {
                 <small style="color: var(--text-muted)">Assigned to: ${t.assignedTo ? t.assignedTo.name : 'Unassigned'}</small>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <select ${!canUpdate ? 'disabled' : ''} onchange="updateTaskStatus('${t._id}', this.value)" style="width: auto;">
+                <select ${!isProjectAdmin ? 'disabled' : ''} onchange="updateTaskStatus('${t._id}', this.value)" style="width: auto;">
                     <option value="To Do" ${t.status === 'To Do' ? 'selected' : ''}>To Do</option>
                     <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
                     <option value="Done" ${t.status === 'Done' ? 'selected' : ''}>Done</option>
@@ -229,11 +229,21 @@ window.openTaskModal = (taskId) => {
     } else {
         document.getElementById('editDueDate').value = '';
     }
+    document.getElementById('editMemberProgress').value = task.memberProgress || '';
+    
+    const isAssignedMember = task.assignedTo && task.assignedTo._id === getUser().id;
     
     document.getElementById('editTaskTitle').readOnly = !isProjectAdmin;
     document.getElementById('editTaskDescription').readOnly = !isProjectAdmin;
     document.getElementById('editDueDate').readOnly = !isProjectAdmin;
-    document.getElementById('updateTaskBtn').style.display = isProjectAdmin ? 'block' : 'none';
+    document.getElementById('editMemberProgress').readOnly = !isAssignedMember;
+    
+    document.getElementById('updateTaskBtn').style.display = (isProjectAdmin || isAssignedMember) ? 'block' : 'none';
+    if (isProjectAdmin) {
+        document.getElementById('updateTaskBtn').innerText = 'Update Task';
+    } else if (isAssignedMember) {
+        document.getElementById('updateTaskBtn').innerText = 'Save Progress';
+    }
     
     document.getElementById('taskModal').style.display = 'block';
 };
@@ -247,24 +257,45 @@ if (editTaskForm) {
     editTaskForm.onsubmit = async (e) => {
         e.preventDefault();
         const taskId = document.getElementById('editTaskId').value;
-        const title = document.getElementById('editTaskTitle').value;
-        const description = document.getElementById('editTaskDescription').value;
-        const dueDate = document.getElementById('editDueDate').value;
+        const isProjectAdmin = window.currentProjectAdminId === getUser().id;
+        
+        if (isProjectAdmin) {
+            const title = document.getElementById('editTaskTitle').value;
+            const description = document.getElementById('editTaskDescription').value;
+            const dueDate = document.getElementById('editDueDate').value;
 
-        const res = await fetch(`${API_URL}/tasks/${taskId}`, {
-            method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
-            },
-            body: JSON.stringify({ title, description, dueDate })
-        });
-        if (res.ok) {
-            closeTaskModal();
-            loadProjectDetails();
+            const res = await fetch(`${API_URL}/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                body: JSON.stringify({ title, description, dueDate })
+            });
+            if (res.ok) {
+                closeTaskModal();
+                loadProjectDetails();
+            } else {
+                const data = await res.json();
+                alert(data.message);
+            }
         } else {
-            const data = await res.json();
-            alert(data.message);
+            const memberProgress = document.getElementById('editMemberProgress').value;
+            const res = await fetch(`${API_URL}/tasks/progress`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                body: JSON.stringify({ taskId, memberProgress })
+            });
+            if (res.ok) {
+                closeTaskModal();
+                loadProjectDetails();
+            } else {
+                const data = await res.json();
+                alert(data.message);
+            }
         }
     };
 }

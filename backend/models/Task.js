@@ -24,6 +24,10 @@ const taskSchema = new mongoose.Schema({
     },
     dueDate: {
         type: Date
+    },
+    memberProgress: {
+        type: String,
+        default: ''
     }
 });
 

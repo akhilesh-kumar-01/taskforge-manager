@@ -6,6 +6,7 @@ const auth = require('../middleware/auth');
 router.post('/', auth, taskController.createTask);
 router.get('/project/:projectId', auth, taskController.getTasks);
 router.put('/status', auth, taskController.updateStatus);
+router.put('/progress', auth, taskController.updateProgress);
 router.put('/:taskId', auth, taskController.updateTask);
 router.delete('/:taskId', auth, taskController.deleteTask);
 router.get('/dashboard', auth, taskController.getDashboardStats);
