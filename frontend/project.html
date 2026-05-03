@@ -34,7 +34,7 @@
 
         <hr>
 
-        <h3>Create New Task</h3>
+        <h3 id="createTaskHeader">Create New Task</h3>
         <form id="createTaskForm">
             <div class="form-group">
                 <label>Title</label>
@@ -56,6 +56,30 @@
             </div>
             <button type="submit">Create Task</button>
         </form>
+    </div>
+
+    <!-- Task Details Modal -->
+    <div id="taskModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeTaskModal()">&times;</span>
+            <h3 id="modalTitle">Task Details</h3>
+            <form id="editTaskForm">
+                <input type="hidden" id="editTaskId">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="editTaskTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="editTaskDescription" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" id="editDueDate">
+                </div>
+                <button type="submit" id="updateTaskBtn">Update Task</button>
+            </form>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>

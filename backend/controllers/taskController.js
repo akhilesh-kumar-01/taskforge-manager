@@ -59,6 +59,29 @@ exports.updateStatus = async (req, res) => {
     }
 };
 
+exports.updateTask = async (req, res) => {
+    const { taskId } = req.params;
+    const { title, description, dueDate } = req.body;
+    try {
+        const task = await Task.findById(taskId);
+        if (!task) return res.status(404).json({ message: 'Task not found' });
+
+        const project = await Project.findById(task.projectId);
+        if (project.adminId.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Only admin can update task details' });
+        }
+
+        task.title = title || task.title;
+        task.description = description !== undefined ? description : task.description;
+        if (dueDate !== undefined) task.dueDate = dueDate;
+
+        await task.save();
+        res.json(task);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 exports.deleteTask = async (req, res) => {
     const { taskId } = req.params;
     try {
